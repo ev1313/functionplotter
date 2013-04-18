@@ -62,12 +62,14 @@ var
   x: Integer;
 begin
   Result := false;
+  state := start;
   b := true;
   for x := 0 to Length(input) - 1 do
   begin
     case state of
       start:
         case input[x] of
+          'x':                                     state := variable;
           ';','^': 				   state := error;
 	  '+','-': 				   state := plusminus;
 	  '0','1','2','3','4','5','6','7','8','9': state := digit;
@@ -127,9 +129,8 @@ end;
 {Creates from the String the function}
 function CreatePlotterFunction(input: PChar): TPlotterFunction;
 var
-  b,b2: Boolean;
+  b: Boolean;
   x: Integer;
-  f: TPlotterFunctionPart;
 
   function GetNumber: Integer;
   var
@@ -147,16 +148,11 @@ var
           Result := Result * d + StrToInt(input[x]);
           Inc(d);
           Inc(x);
-        end;
+      end;
       else
         b := false;
       end;
     end;
-  end;
-
-  function GetExponent: Cardinal;
-  begin
-
   end;
 
   function GetFunctionPart: TPlotterFunctionPart;
@@ -166,9 +162,9 @@ var
     plotting := true;
     while plotting do
       case input[x] of
-        '^': Result.n := GetExponent;
+        '^': Result.n := GetNumber;
+        ';','+','-': plotting := false;
         '0','1','2','3','4','5','6','7','8','9': Result.a := GetNumber;
-        ';','+','-': Exit;
       end;
   end;
 
@@ -176,15 +172,25 @@ begin
   x := 0;
   b := true;
   SetLength(Result, 0);
-  while b and x < Length(input) do
+  while b and (x < Length(input)) do
   begin
     case input[x] of
-      '-':
+      '-','+':
       begin
         SetLength(Result, Length(Result) + 1);
-        Result[High(Result)] := GetFunction;
+        if input[x] = '-' then
+          Result[High(Result)].s := true
+        else
+          Result[High(Result)].s := false;
+        Result[High(Result)] := GetFunctionPart;
+        Inc(x);
       end;
-      '+': f.s := false;
+      '0','1','2','3','4','5','6','7','8','9':
+      begin
+        SetLength(Result, Length(Result) + 1);
+        Result[High(Result)].s := true;
+        Result[High(Result)] := GetFunctionPart;
+      end;
       ';': b := false;
     end;
   end;
@@ -193,9 +199,16 @@ end;
 { TForm1 }
 
 procedure TForm1.Button1Click(Sender: TObject);
+var
+  f: TPlotterFunction;
 begin
   if CheckInput(PChar(Edit1.Text)) then
-    Form1.Caption := 'Success';
+  begin
+    f := CreatePlotterFunction(PChar(Edit1.Text));
+    Form1.Caption := '';
+  end
+  else
+    Form1.Caption := 'fehler';
 end;
 
 {$R *.lfm}
