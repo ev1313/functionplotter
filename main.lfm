@@ -33,6 +33,32 @@ object Form1: TForm1
     Width = 824
     Align = alClient
     Caption = 'Panel1'
+    ClientHeight = 491
+    ClientWidth = 824
     TabOrder = 2
+    object Edit2: TEdit
+      Left = 40
+      Height = 23
+      Top = 8
+      Width = 80
+      TabOrder = 0
+      Text = 'Edit2'
+    end
+    object Edit3: TEdit
+      Left = 40
+      Height = 23
+      Top = 32
+      Width = 80
+      TabOrder = 1
+      Text = 'Edit3'
+    end
+    object Edit4: TEdit
+      Left = 40
+      Height = 23
+      Top = 56
+      Width = 80
+      TabOrder = 2
+      Text = 'Edit4'
+    end
   end
 end
