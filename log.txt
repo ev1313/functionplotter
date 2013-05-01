@@ -3,17 +3,24 @@ Initialized SDL_VIDEO successfully.
 
 
 Created SDL-Surface successfully.
-Width: 600
-Height: 400
+Width: 800
+Height: 600
 BPP: 16
 Caption: Functionplotter
 Resizable
 
 
 Perspective-Projection-Matrix: 
-Width: 600
-Height: 400
+Width: 800
+Height: 600
 Field of View: 45
+Near-Clipping-Plane: 0
+Far-Clipping-Plane: 128
+
+
+Orthogonal-Projection-Matrix: 
+Width: 800
+Height: 600
 Near-Clipping-Plane: 0
 Far-Clipping-Plane: 128
 

@@ -3,6 +3,7 @@ unit functionplotter;
 interface
 
 uses
+  dglOpenGL,
   SysUtils,
   Math;  
 
@@ -31,12 +32,17 @@ const
   error = 7;
   error_exponent = 8;
   success = 9;
+
+function GetFunctionFromString(input: PChar): TPlotterFunction; 
+function CalculatePlotterFunction(f: TPlotterFunction; x: Single): Single;
+procedure DrawPlotterFunction(f: TPlotterFunction; w,h: Integer; step,minx,maxx,miny,maxy: Single);
   
 implementation
   
 {
   Checks the Input like the transitiongraph describes.
 }
+
 function CheckInput(input: PChar): Integer;
 var
   state: Cardinal;
@@ -64,53 +70,53 @@ begin
       start:
         case input[x] of
           'x':                                     state := variable;
-          ';','^': 				   state := error;
-	  '+','-': 				   state := plusminus;
-	  '0','1','2','3','4','5','6','7','8','9': state := digit;
-  	end;
+          ';','^': 				                         state := error;
+	        '+','-': 				                         state := plusminus;
+	        '0','1','2','3','4','5','6','7','8','9': state := digit;
+  	    end;
 	  
       plusminus:
         case input[x] of
-          ';','^','+','-': 			   state := error;
+          ';','^','+','-': 			                   state := error;
           'x':                                     state := variable;
-	  '0','1','2','3','4','5','6','7','8','9': state := digit;
+	        '0','1','2','3','4','5','6','7','8','9': state := digit;
         end;
 
       plusminus_exponent:
         case input[x] of
           '+','-','^',';','x':                     state := error_exponent;
-	  '0','1','2','3','4','5','6','7','8','9': state := digit_exponent;
+	        '0','1','2','3','4','5','6','7','8','9': state := digit_exponent;
         end;
 
       digit:
         case input[x] of
           ';':                                     state := success;
-	  '^','+','-':                             state := error;
-	  '0','1','2','3','4','5','6','7','8','9': state := digit;
+	        '^','+','-':                             state := error;
+	        '0','1','2','3','4','5','6','7','8','9': state := digit;
           'x':                                     state := variable;
-	end;
+      	end;
 
       digit_exponent:
         case input[x] of
           '+','-':                                 state := digit;
           ';':                                     state := success;
           'x','^':                                 state := error_exponent;
-	  '0','1','2','3','4','5','6','7','8','9': state := digit_exponent;
+	        '0','1','2','3','4','5','6','7','8','9': state := digit_exponent;
         end;
 
       variable:
-	case input[x] of
-	  ';': 				               state := success;
-	  '^':				               state := three;
-	  '+','-':				       state := plusminus;
-	  '0','1','2','3','4','5','6','7','8','9','x': state := error_exponent;
-	end;
+     	  case input[x] of
+	        ';': 				               state := success;
+	        '^':				               state := three;
+	        '+','-':				       state := plusminus;
+	        '0','1','2','3','4','5','6','7','8','9','x': state := error_exponent;
+	      end;
 
       three:
         case input[x] of
           'x',';','^':                             state := error_exponent;
           '+','-':                                 state := plusminus_exponent;
-	  '0','1','2','3','4','5','6','7','8','9': state := digit_exponent;
+	        '0','1','2','3','4','5','6','7','8','9': state := digit_exponent;
         end;
     end;
 	
@@ -203,6 +209,51 @@ begin
       Break;
     end;
   end;
+end;
+
+function CalculatePlotterFunction(f: TPlotterFunction; x: Single): Single;
+var
+  loop: Integer;
+begin
+  Result := 0;
+  for loop := 0 to High(f) do
+    Result := Result + f[loop].a*Power(x,f[loop].n);
+end;
+
+procedure DrawPlotterFunction(f: TPlotterFunction; w,h: Integer; step,minx,maxx,miny,maxy: Single);
+var
+  x,y: Single;
+  xold,xnew,
+  yold,ynew: Single;
+begin   
+  x := w/(maxx-minx);
+  y := h/(maxy-miny);
+  glTranslatef(-minx*x,-miny*y,0);
+
+  //coord sys
+  glBegin(GL_LINES);
+    glColor3f(1,0,0);
+    glVertex2f(-100000,0);
+    glVertex2f( 100000,0);
+    glColor3f(0,1,0);
+    glVertex2f(0,-100000);
+    glVertex2f(0, 100000);
+  glEnd;
+
+  glColor3f(1,1,1);
+  xnew := minx;
+  ynew := CalculatePlotterFunction(f,xnew);
+  glBegin(GL_LINE_STRIP);
+    while xnew <= maxx do
+    begin
+      xold := xnew;
+      yold := ynew;
+      xnew := xnew + step;
+      ynew := CalculatePlotterFunction(f,xnew);
+      glVertex2f(xold*x,yold*y);
+      glVertex2f(xnew*x,ynew*y);
+    end;
+  glEnd;   
 end;
 
 end.
