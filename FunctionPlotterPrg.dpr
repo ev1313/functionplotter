@@ -9,6 +9,7 @@ program FunctionPlotterPrg;
 {$ENDIF}
 
 uses
+  Classes,
   dglOpenGL,
   SDL,
   EVEngine,
@@ -18,13 +19,58 @@ uses
   functionplotter;
 
 type
-  TMyEngine = class(TEVEngine)
+  TMyEngine = class(TEVEngine)  
+    procedure OnMouseDown(_button: Byte; _x,_y: UInt16); override;
+    procedure OnMouseMove(_x,_y: UInt16;_xrel,_yrel: SInt16); override;
+    procedure OnMouseUp(_button: Byte;_x,_y: UInt16); override;
     procedure Render; override;
   end;
 
 var
   engine: TMyEngine;
   fnc: TPlotterFunction;
+  left_pressed: Boolean;
+  a,b: Integer;
+  xmove,
+  ymove: Integer;
+  step: Single;
+  minx,
+  maxx,
+  miny,
+  maxy: Single;
+
+procedure TMyEngine.OnMouseDown(_button: Byte; _x,_y: UInt16);
+begin
+  case _button of
+    1: left_pressed := true;
+    4:
+    begin
+      minx := minx + 1;
+      maxx := maxx - 1;
+    end;
+    5:
+    begin
+      minx := minx - 1;
+      maxx := maxx + 1;
+    end;
+  end;
+end;
+
+procedure TMyEngine.OnMouseMove(_x,_y: UInt16; _xrel,_yrel: SInt16);
+begin
+  if left_pressed then
+  begin
+    xmove := xmove + _xrel;
+    ymove := ymove - _yrel;
+  end;
+end;
+
+procedure TMyEngine.OnMouseUp(_button: Byte; _x,_y: UInt16);
+begin
+  case _button of
+    1: left_pressed := false;
+  end;
+end;
 
 procedure TMyEngine.Render;
 begin
@@ -32,14 +78,30 @@ begin
 
   glLoadIdentity;
 
-  DrawPlotterFunction(fnc,engine.Width,engine.Height,0.1,-10,10,-10,10);
-  
+  glTranslatef(xmove,ymove,0);
+
+  DrawPlotterFunction(fnc,engine.Width,engine.Height,xmove,ymove,step,minx,maxx,miny,maxy);
+
   SDL_GL_SwapBuffers; //changes the buffers, so you can see sth. on the screen...
 end;
 
+var
+  str: TStringList;
+
 begin
-  //calculate Function
-  fnc := GetFunctionFromString('x^2;');
+  left_pressed := false;
+  xmove := 0;
+  ymove := 0;
+  step := 0.1;
+  minx := -10;
+  maxx := 10;
+  miny := -10;
+  maxy := 10;
+
+  //get function
+  str := TStringList.Create;
+  str.LoadFromFile('function.txt');
+  fnc := GetFunctionFromString(PAnsiChar(str.Text));
 
   //initialize Engine
   engine := TMyEngine.Create(800,600,16,'Functionplotter',true{,false});

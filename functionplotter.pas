@@ -35,7 +35,7 @@ const
 
 function GetFunctionFromString(input: PChar): TPlotterFunction; 
 function CalculatePlotterFunction(f: TPlotterFunction; x: Single): Single;
-procedure DrawPlotterFunction(f: TPlotterFunction; w,h: Integer; step,minx,maxx,miny,maxy: Single);
+procedure DrawPlotterFunction(f: TPlotterFunction; w,h,xpos,ypos: Integer; step,minx,maxx,miny,maxy: Single);
   
 implementation
   
@@ -220,7 +220,7 @@ begin
     Result := Result + f[loop].a*Power(x,f[loop].n);
 end;
 
-procedure DrawPlotterFunction(f: TPlotterFunction; w,h: Integer; step,minx,maxx,miny,maxy: Single);
+procedure DrawPlotterFunction(f: TPlotterFunction; w,h,xpos,ypos: Integer; step,minx,maxx,miny,maxy: Single);
 var
   x,y: Single;
   xold,xnew,
@@ -228,7 +228,7 @@ var
 begin   
   x := w/(maxx-minx);
   y := h/(maxy-miny);
-  glTranslatef(-minx*x,-miny*y,0);
+  glTranslatef((-minx)*x,(-miny)*y,0);
 
   //coord sys
   glBegin(GL_LINES);
@@ -241,10 +241,10 @@ begin
   glEnd;
 
   glColor3f(1,1,1);
-  xnew := minx;
+  xnew := minx + (xpos/x);
   ynew := CalculatePlotterFunction(f,xnew);
-  glBegin(GL_LINE_STRIP);
-    while xnew <= maxx do
+  glBegin(GL_LINES);
+    while (xnew <= (maxx - (xpos/x))*step) do
     begin
       xold := xnew;
       yold := ynew;
@@ -253,7 +253,7 @@ begin
       glVertex2f(xold*x,yold*y);
       glVertex2f(xnew*x,ynew*y);
     end;
-  glEnd;   
+  glEnd;
 end;
 
 end.

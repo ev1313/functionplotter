@@ -8,7 +8,6 @@ __history
 *.exe
 *.dll
 bin/*
-*.mpb
 *.~mm
 *.groupproj.local
 *.tvsconfig
